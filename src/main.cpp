@@ -2,10 +2,10 @@
 
 #define BAUD_RATE 115200
 
-const uint8_t rows[2] = {8, 9};
+const uint8_t rows[2] = {52, 50}; // Keep as is
 const uint8_t rowCount = sizeof(rows) / sizeof(rows[0]);
 
-const uint8_t cols[2] = {10, 11};
+const uint8_t cols[1] = {53}; // Keep as is
 const uint8_t colCount = sizeof(cols) / sizeof(cols[0]);
 
 uint8_t prevState[colCount][rowCount];
@@ -29,11 +29,14 @@ void initPrevState()
 
 void setupMatrix()
 {
+  // Initialize rows as OUTPUT and set them HIGH initially
   for (int i = 0; i < rowCount; i++)
   {
-    pinMode(rows[i], INPUT);
+    pinMode(rows[i], OUTPUT);
+    digitalWrite(rows[i], HIGH);
   }
 
+  // Initialize cols as INPUT_PULLUP
   for (int i = 0; i < colCount; i++)
   {
     pinMode(cols[i], INPUT_PULLUP);
@@ -48,6 +51,7 @@ void keyPressedEvent(uint8_t row, uint8_t col)
   Serial.print(col + 1);
   Serial.println(" pressed");
 }
+
 void keyReleasedEvent(uint8_t row, uint8_t col)
 {
   Serial.print("R");
@@ -59,20 +63,24 @@ void keyReleasedEvent(uint8_t row, uint8_t col)
 
 void scanMatrix()
 {
-  for (int colIndex = 0; colIndex < colCount; colIndex++)
+  for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
   {
-    uint8_t currColPin = cols[colIndex];
+    uint8_t currRowPin = rows[rowIndex];
 
-    // enable col
-    pinMode(currColPin, OUTPUT);
-    digitalWrite(currColPin, LOW);
+    // Enable this row (drive it LOW)
+    pinMode(currRowPin, OUTPUT);
+    digitalWrite(currRowPin, LOW);
 
-    for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
+    // Small delay for signal to settle
+    delayMicroseconds(10);
+
+    // Read all columns for this row
+    for (int colIndex = 0; colIndex < colCount; colIndex++)
     {
-      uint8_t currRowPin = rows[rowIndex];
+      uint8_t currColPin = cols[colIndex];
 
-      pinMode(currRowPin, INPUT_PULLUP);
-      byte state = digitalRead(currRowPin);
+      // Read column state
+      byte state = digitalRead(currColPin);
 
       if (prevState[colIndex][rowIndex] != state)
       {
@@ -88,11 +96,11 @@ void scanMatrix()
       }
 
       prevState[colIndex][rowIndex] = state;
-      pinMode(currRowPin, INPUT_PULLUP);
     }
 
-    // disable col
-    pinMode(currColPin, INPUT);
+    // Disable this row (set it back to HIGH)
+    digitalWrite(currRowPin, HIGH);
+    pinMode(currRowPin, INPUT);
   }
 }
 
