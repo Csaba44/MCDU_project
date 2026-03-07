@@ -13,7 +13,6 @@ uint8_t prevState[colCount][rowCount];
 void setupSerialConnection()
 {
   Serial.begin(BAUD_RATE);
-  Serial.println("--2x2 matrix--");
 }
 
 void initPrevState()
