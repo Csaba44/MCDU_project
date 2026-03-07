@@ -2,10 +2,10 @@
 
 #define BAUD_RATE 115200
 
-const uint8_t rows[2] = {52, 50}; // Keep as is
+const uint8_t rows[8] = {52, 50, 48, 46, 44, 42, 40, 38};
 const uint8_t rowCount = sizeof(rows) / sizeof(rows[0]);
 
-const uint8_t cols[1] = {53}; // Keep as is
+const uint8_t cols[11] = {53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33};
 const uint8_t colCount = sizeof(cols) / sizeof(cols[0]);
 
 uint8_t prevState[colCount][rowCount];
@@ -29,14 +29,12 @@ void initPrevState()
 
 void setupMatrix()
 {
-  // Initialize rows as OUTPUT and set them HIGH initially
   for (int i = 0; i < rowCount; i++)
   {
     pinMode(rows[i], OUTPUT);
     digitalWrite(rows[i], HIGH);
   }
 
-  // Initialize cols as INPUT_PULLUP
   for (int i = 0; i < colCount; i++)
   {
     pinMode(cols[i], INPUT_PULLUP);
@@ -67,14 +65,11 @@ void scanMatrix()
   {
     uint8_t currRowPin = rows[rowIndex];
 
-    // Enable this row (drive it LOW)
+    // Enable one row
     pinMode(currRowPin, OUTPUT);
     digitalWrite(currRowPin, LOW);
 
-    // Small delay for signal to settle
-    delayMicroseconds(10);
-
-    // Read all columns for this row
+    // Read all columns for the row
     for (int colIndex = 0; colIndex < colCount; colIndex++)
     {
       uint8_t currColPin = cols[colIndex];
@@ -98,7 +93,7 @@ void scanMatrix()
       prevState[colIndex][rowIndex] = state;
     }
 
-    // Disable this row (set it back to HIGH)
+    // Disable row
     digitalWrite(currRowPin, HIGH);
     pinMode(currRowPin, INPUT);
   }
