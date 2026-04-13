@@ -109,12 +109,38 @@ void scanMatrix()
   }
 }
 
-void setupLedTest()
+void setupLeds()
 {
   for (uint8_t i = 0; i < ledCount; i++)
   {
     pinMode(ledPins[i], OUTPUT);
     digitalWrite(ledPins[i], LOW);
+  }
+}
+
+void readSerialCommands()
+{
+  if (Serial.available() > 0)
+  {
+    String data = Serial.readStringUntil('\n');
+    data.trim();
+
+    if (data.startsWith("LED:"))
+    {
+      int firstColon = data.indexOf(':');
+      int secondColon = data.indexOf(':', firstColon + 1);
+
+      if (firstColon != -1 && secondColon != -1)
+      {
+        int ledIndex = data.substring(firstColon + 1, secondColon).toInt();
+        int ledState = data.substring(secondColon + 1).toInt();
+
+        if (ledIndex >= 0 && ledIndex < ledCount)
+        {
+          digitalWrite(ledPins[ledIndex], ledState > 0 ? HIGH : LOW);
+        }
+      }
+    }
   }
 }
 
@@ -139,12 +165,12 @@ void setup()
   setupSerialConnection();
   initPrevState();
   setupMatrix();
-
-  // setupLedTest();
+  setupLeds();
 }
 
 void loop()
 {
+  readSerialCommands();
   // runLedTest();
   scanMatrix();
 }
