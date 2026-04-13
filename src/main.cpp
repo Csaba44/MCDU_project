@@ -2,11 +2,22 @@
 
 #define BAUD_RATE 115200
 
+// ===== BTN MATRIX =====
 const uint8_t rows[8] = {52, 50, 48, 46, 44, 42, 40, 38};
 const uint8_t rowCount = sizeof(rows) / sizeof(rows[0]);
 
 const uint8_t cols[11] = {53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33};
 const uint8_t colCount = sizeof(cols) / sizeof(cols[0]);
+// ===========================
+
+// ===== LED =====
+const uint8_t ledPins[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+const uint8_t ledCount = sizeof(ledPins) / sizeof(ledPins[0]);
+
+uint8_t currentLed = 0;
+unsigned long lastSwitch = 0;
+const unsigned long ledInterval = 500;
+// ===========================
 
 uint8_t prevState[colCount][rowCount];
 
@@ -98,14 +109,42 @@ void scanMatrix()
   }
 }
 
+void setupLedTest()
+{
+  for (uint8_t i = 0; i < ledCount; i++)
+  {
+    pinMode(ledPins[i], OUTPUT);
+    digitalWrite(ledPins[i], LOW);
+  }
+}
+
+void runLedTest()
+{
+  if (millis() - lastSwitch >= ledInterval)
+  {
+    lastSwitch = millis();
+
+    digitalWrite(ledPins[currentLed], LOW);
+
+    currentLed++;
+    if (currentLed >= ledCount)
+      currentLed = 0;
+
+    digitalWrite(ledPins[currentLed], HIGH);
+  }
+}
+
 void setup()
 {
   setupSerialConnection();
   initPrevState();
   setupMatrix();
+
+  // setupLedTest();
 }
 
 void loop()
 {
+  // runLedTest();
   scanMatrix();
 }
